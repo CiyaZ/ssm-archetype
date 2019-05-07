@@ -32,3 +32,6 @@ mvn archetype:generate \
 -DinteractiveMode=false
 ```
 
+## 测试
+
+默认`doc`下有一个数据库建表SQL文件，可供自动生成的持久层组件访问，以进行测试，不需要删了就行。
