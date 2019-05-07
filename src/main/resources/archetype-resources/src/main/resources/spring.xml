@@ -1,0 +1,104 @@
+#set( $symbol_pound = '#' )
+#set( $symbol_dollar = '$' )
+#set( $symbol_escape = '\' )
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+	<!-- use spring annotation -->
+	<mvc:annotation-driven/>
+
+	<!-- base package scan -->
+	<context:component-scan base-package="${package}"/>
+
+	<!-- static resources-->
+	<mvc:resources location="/static/" mapping="/static/**"/>
+
+	<!--thymeleaf template-->
+	<bean id="viewResolver" class="org.thymeleaf.spring5.view.ThymeleafViewResolver">
+		<property name="templateEngine" ref="templateEngine"/>
+		<property name="characterEncoding" value="UTF-8"/>
+	</bean>
+	<bean id="templateEngine" class="org.thymeleaf.spring5.SpringTemplateEngine">
+		<property name="templateResolver" ref="templateResolver"/>
+	</bean>
+	<bean id="templateResolver" class="org.thymeleaf.spring5.templateresolver.SpringResourceTemplateResolver">
+		<property name="prefix" value="/template/"/>
+		<property name="suffix" value=".html"/>
+		<property name="templateMode" value="HTML"/>
+		<property name="characterEncoding" value="UTF-8"/>
+		<!--<property name="cacheable" value="false" />-->
+	</bean>
+
+	<!-- jackson config -->
+	<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+		<property name="messageConverters">
+			<list>
+				<ref bean="mappingJacksonHttpMessageConverter"/>
+			</list>
+		</property>
+	</bean>
+	<bean id="mappingJacksonHttpMessageConverter"
+	      class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+		<property name="supportedMediaTypes">
+			<list>
+				<value>application/json;charset=UTF-8</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- JDBC config -->
+	<context:property-placeholder location="classpath:db.properties"/>
+
+	<!--Hikari pools-->
+	<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
+		<property name="poolName" value="mercatus_connection_pool" />
+		<property name="dataSourceClassName"
+		          value="com.mysql.cj.jdbc.MysqlDataSource" />
+		<property name="maximumPoolSize" value="50" />
+		<property name="maxLifetime" value="60000" />
+		<property name="idleTimeout" value="30000" />
+		<property name="dataSourceProperties">
+			<props>
+				<prop key="url">${symbol_dollar}{jdbc.url}</prop>
+				<prop key="user">${symbol_dollar}{jdbc.username}</prop>
+				<prop key="password">${symbol_dollar}{jdbc.password}</prop>
+				<prop key="prepStmtCacheSize">250</prop>
+				<prop key="prepStmtCacheSqlLimit">2048</prop>
+				<prop key="cachePrepStmts">true</prop>
+				<prop key="useServerPrepStmts">true</prop>
+			</props>
+		</property>
+	</bean>
+	<bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource">
+		<constructor-arg ref="hikariConfig" />
+	</bean>
+
+	<!-- transaction manager config -->
+	<bean id="transactionManager"
+	      class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"/>
+	</bean>
+	<tx:annotation-driven/>
+
+	<!-- define sql session bean -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="configLocation" value="classpath:mybatis-config.xml"/>
+		<property name="mapperLocations" value="classpath*:mapper/*Mapper.xml"/>
+	</bean>
+
+	<!-- mybatis mapper scanner -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="${package}.**.mapper"/>
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+	</bean>
+
+</beans>
