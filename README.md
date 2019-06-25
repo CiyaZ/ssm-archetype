@@ -21,6 +21,8 @@ mvn clean install
 
 ### 调用模板
 
+Linux：
+
 ```
 mvn archetype:generate \
 -DarchetypeCatalog=local \
@@ -29,6 +31,19 @@ mvn archetype:generate \
 -DarchetypeVersion=1.0-SNAPSHOT \
 -DgroupId=<项目组名> \
 -DartifactId=<项目名> \
+-DinteractiveMode=false
+```
+
+Windows：
+
+```
+mvn archetype:generate ^
+-DarchetypeCatalog=local ^
+-DarchetypeGroupId=com.ciyaz ^
+-DarchetypeArtifactId=ssm-archetype ^
+-DarchetypeVersion=1.0-SNAPSHOT ^
+-DgroupId=<项目组名> ^
+-DartifactId=<项目名> ^
 -DinteractiveMode=false
 ```
 
